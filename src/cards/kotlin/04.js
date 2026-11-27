@@ -1,0 +1,77 @@
+// kotlin · Lambda 与函数类型（7 张）。字段说明见 README.md。
+(function (C) {
+  const add = (cat, list) => list.forEach((c) => C.push({ lang: 'kotlin', cat, ...c }));
+
+  add('Lambda 与函数类型', [
+    {
+      id: 'kt-lambda', title: '{ } Lambda 表达式', syntax: '{ a, b -> a + b }',
+      why: '临时写一个没有名字的小函数，当参数传给别的函数（比如过滤规则、点击回调），或者存进变量。相当于 TS 的箭头函数。',
+      example: '// 存进变量：-> 左边是参数，右边是函数体，最后一个表达式就是返回值\nval add = { a: Int, b: Int -> a + b }\nprintln(add(1, 2))                        // 输出：3\n\n// 当参数传给函数\nval nums = listOf(3, -1, 4)\nval pos = nums.filter({ n -> n > 0 })\nprintln(pos)                              // 输出：[3, 4]\n\n// 函数体可以有多行\nval check = { n: Int ->\n    println("检查 $n")\n    n > 0                                 // 最后一行是返回值，不写 return\n}\nprintln(check(5))                         // 输出：检查 5，然后输出 true',
+      vs: ['lambda vs 普通函数', 'fun addFn(a: Int, b: Int): Int { return a + b }   // 有名字，用 return\nval addLambda = { a: Int, b: Int -> a + b }       // 没名字，最后一行就是结果\n\naddFn(1, 2)\naddLambda(1, 2)\nlistOf(1, 2).map(::addOne)    // 已有函数可以用 :: 引用代替 lambda'],
+      ts: 'const add = (a: number, b: number) => a + b;\nconsole.log(add(1, 2));                       // 3\nconst pos = [3, -1, 4].filter((n) => n > 0);   // [3, 4]\n// 区别：Kotlin 用 { 参数 -> 函数体 }，整个用大括号包起来',
+      desc: '- 参数类型能推断时可以不写：`nums.filter { n -> n > 0 }`\n- 只有一个参数时可以不声明，直接用 `it`\n- lambda 可以读写外面的变量（闭包）',
+      cmp: ['Java', 'BiFunction<Integer, Integer, Integer> add = (a, b) -> a + b;'],
+      pit: 'lambda 里不能直接写 `return x` 当返回值，最后一个表达式就是结果。只有传给 inline 函数（如 `forEach`）的 lambda 能写 `return`，而且它会结束**外层函数**；只想结束这一次 lambda 要写 `return@forEach`。',
+      q: '(lambda_literal) @hit', tags: ['lambda', '匿名函数', '->', '闭包', '箭头函数'],
+    },
+    {
+      id: 'kt-it', title: 'it 隐式参数', syntax: 'list.filter { it > 0 }',
+      why: 'lambda 只有一个参数时，不用给它起名字，直接用 `it` 指代。像 `filter { it > 0 }` 这种很短的 lambda 会简洁很多。',
+      example: 'val nums = listOf(3, -1, 4)\n\nprintln(nums.filter { it > 0 })        // 输出：[3, 4]\nprintln(nums.map { it * 10 })          // 输出：[30, -10, 40]\nnums.forEach { println("值是 $it") }   // 输出三行：值是 3 / 值是 -1 / 值是 4',
+      vs: ['it vs 自己起名字', 'nums.filter { it > 0 }\nnums.filter { n -> n > 0 }        // 完全一样\n\n// 嵌套时 it 会混淆，最好起名字：\nusers.forEach { user ->\n    user.orders.forEach { order -> println("${user.name} ${order.id}") }\n}\n\n// 两个参数的 lambda 不能用 it：\nmap.forEach { k, v -> println("$k=$v") }'],
+      ts: 'const nums = [3, -1, 4];\nnums.filter((it) => it > 0);   // TS 没有隐式参数，必须写出参数名\nnums.map((it) => it * 10);',
+      desc: '- 只在 lambda 恰好有一个参数时可用\n- `it` 不是关键字，只是一个默认名字',
+      cmp: ['Java', 'nums.stream().filter(it -> it > 0)'],
+      q: '((simple_identifier) @hit (#eq? @hit "it"))', tags: ['it', '隐式参数'],
+    },
+    {
+      id: 'kt-trailing-lambda', title: '尾随 lambda f(x) { }', syntax: 'f(a) { ... }    f { ... }',
+      why: '函数的最后一个参数是函数时，lambda 可以写到括号外面；如果只有这一个参数，括号也能省。这样调用看起来像语言自带的代码块，`by lazy { }`、`list.map { }`、`launch { }`、`repeat(3) { }` 都是这种写法。',
+      example: '// 一个最后参数是函数的函数\nfun retry(times: Int, action: () -> Unit) {\n    repeat(times) { action() }\n}\n\nretry(2, { println("尝试") })   // 普通写法\nretry(2) { println("尝试") }    // 尾随写法，lambda 移到括号外\n// 两种都输出两次：尝试\n\nval nums = listOf(1, 2, 3)\nprintln(nums.map { it * 2 })    // 只有一个 lambda 参数，括号直接省掉\n// 输出：[2, 4, 6]',
+      vs: ['三种写法完全等价', 'nums.map({ it * 2 })   // 放在括号里\nnums.map() { it * 2 }  // 移到括号外\nnums.map { it * 2 }    // 再省掉空括号（最常见）\n\n// 看到 xxx { ... } 时，多半就是调用了函数 xxx，并把大括号里的 lambda 传给它'],
+      ts: 'function retry(times: number, action: () => void) { for (let i = 0; i < times; i++) action(); }\nretry(2, () => console.log("尝试"));   // TS 只能写在括号里\n[1, 2, 3].map((it) => it * 2);',
+      desc: '- 只有**最后一个**参数是函数时才能这样写\n- 看到 `xxx { ... }` 这种写法，多半就是在调用函数 `xxx`，Ctrl+点击 `xxx` 就能看到它的定义',
+      cmp: ['Java', 'list.forEach(it -> System.out.println(it));'],
+      q: '(annotated_lambda) @hit', tags: ['尾随 lambda', 'trailing lambda', '大括号'],
+    },
+    {
+      id: 'kt-function-type', title: '() -> T 函数类型', syntax: 'val f: (Int) -> String',
+      why: '把"一个函数"当成值来用：当参数传进去、存成属性、作为返回值。描述这种值的类型就是函数类型。常用于回调，或者把某个行为做成可替换的（测试时传入假的实现）。',
+      example: '// 参数是函数类型：(Int) -> String 表示"接收 Int，返回 String 的函数"\nfun show(n: Int, format: (Int) -> String) {\n    println(format(n))           // 调用传进来的函数\n}\n\nshow(5) { "数字 $it" }           // 输出：数字 5\nshow(5) { "★".repeat(it) }       // 输出：★★★★★\n\n// 属性是函数类型，带默认实现\nclass Nav(private val backAction: () -> Boolean = { true }) {\n    fun goBack() = backAction()  // 加括号：执行这个函数\n}\nprintln(Nav().goBack())           // 输出：true\nprintln(Nav { false }.goBack())   // 输出：false（换了一个实现）',
+      vs: ['backAction 和 backAction() 的区别', 'val backAction: () -> Boolean = { true }\n\nval f = backAction      // 拿到函数本身，类型是 () -> Boolean，没有执行\nval r = backAction()    // 执行函数，得到 true\n\n// 可空的函数类型：\nval cb: (() -> Unit)? = null\ncb?.invoke()            // 可空的函数要用 ?.invoke() 调用'],
+      ts: 'function show(n: number, format: (n: number) => string) {\n  console.log(format(n));\n}\nshow(5, (it) => `数字 ${it}`);\nclass Nav {\n  constructor(private backAction: () => boolean = () => true) {}\n}\n// 写法对照：(Int) -> String ≈ (n: number) => string',
+      desc: '- 写法：`(参数类型, ...) -> 返回类型`，没有返回值写 `-> Unit`\n- 参数可以带名字，只起说明作用：`(code: Int, msg: String) -> Unit`',
+      cmp: ['Java', 'Supplier<Boolean> backAction;\nFunction<Integer, String> toText;'],
+      pit: '属性里存的是函数时，`backAction()` 是执行这个函数，`backAction` 只是拿到函数本身。',
+      q: '(function_type) @hit', tags: ['->', '函数类型', '高阶函数', 'Supplier', 'Function', '回调'],
+    },
+    {
+      id: 'kt-receiver-lambda', title: 'T.() -> Unit 带接收者的函数类型', syntax: 'block: Foo.() -> Unit',
+      why: '让传进来的 lambda 内部可以直接调用某个对象的方法，不用写 `obj.`。各种"配置块"和 DSL 都靠它：`apply { }`、`buildString { }`、Gradle 的 `android { }`。',
+      example: 'class Options {\n    var timeout = 1000\n    var retry = 0\n}\n\n// Options.() -> Unit：lambda 里的 this 是一个 Options\nfun config(block: Options.() -> Unit): Options {\n    val o = Options()\n    o.block()                    // 以 o 作为 this 执行 lambda\n    return o\n}\n\nval o = config {\n    timeout = 3000               // 直接访问 Options 的属性，相当于 this.timeout\n    retry = 2\n}\nprintln("${o.timeout} ${o.retry}")   // 输出：3000 2',
+      vs: ['普通参数 (T) -> Unit 和带接收者 T.() -> Unit', 'fun config1(block: (Options) -> Unit) = Options().also(block)\nfun config2(block: Options.() -> Unit) = Options().apply(block)\n\nconfig1 { it.timeout = 3000 }   // 要通过 it 访问\nconfig2 { timeout = 3000 }      // this 就是 Options，直接写'],
+      ts: '// TS 没有对应写法，lambda 里的 this 不能这样指定。\n// 最接近的是把对象作为参数传进去：\nfunction config(block: (o: Options) => void) {\n  const o = new Options();\n  block(o);\n  return o;\n}\nconfig((o) => { o.timeout = 3000; });',
+      desc: '- lambda 里的 `this` 就是接收者对象，`this.` 可以省略\n- 标准库的 `apply`、`with`、`run`、`buildString`、`buildList` 都用到了它',
+      q: '(function_type (type_identifier) ".") @hit', tags: ['接收者', 'receiver', 'DSL', 'apply', 'this'],
+    },
+    {
+      id: 'kt-callable-ref', title: ':: 函数/属性引用', syntax: '::println    String::length    Foo::class',
+      why: '已经有一个现成的函数或属性，要把它当参数传，不想再包一层 lambda，就用 `::` 引用它，表示"把这个函数交给你，你来调用"。`Foo::class` 则是拿到类本身，Android 启动页面、反射时会用到。',
+      example: 'fun isPositive(n: Int) = n > 0\n\nval nums = listOf(3, -1, 4)\nprintln(nums.filter(::isPositive))      // 输出：[3, 4]（传函数本身，不是调用结果）\n\nval words = listOf("a", "bbb")\nprintln(words.map(String::length))      // 输出：[1, 3]（引用 String 的 length 属性）\nwords.forEach(::println)                // 输出两行：a / bbb\n\nprintln(String::class.simpleName)       // 输出：String\n// startActivity(Intent(ctx, MainActivity::class.java))   // Android 里常见用法',
+      vs: ['::isPositive 和 isPositive() 的区别', 'nums.filter(::isPositive)             // 传函数\nnums.filter { isPositive(it) }        // 等价的 lambda 写法\n// nums.filter(isPositive())          // 编译错误：这是在调用函数，而且没传参数\n\nUser::class        // Kotlin 的 KClass\nUser::class.java   // Java 的 Class，调用 Android/Java API 时用这个'],
+      ts: 'const isPositive = (n: number) => n > 0;\n[3, -1, 4].filter(isPositive);   // TS 直接写函数名就行，不需要 ::\n["a", "bbb"].map((s) => s.length);\n// Kotlin 需要 :: 是因为直接写函数名会被当成变量',
+      desc: '- `::函数名`：顶层或局部函数\n- `类名::方法名`：方法引用，调用时第一个参数是对象\n- `对象::方法名`：绑定到某个对象的方法\n- `类名::class`：KClass；`.java` 得到 Java 的 Class',
+      cmp: ['Java', 'list.forEach(System.out::println);\nClass<?> cls = MyService.class;'],
+      q: '(callable_reference) @hit', tags: ['::', '方法引用', 'class', '函数引用'],
+    },
+    {
+      id: 'kt-label', title: 'label@ 标签', syntax: 'return@forEach    break@outer',
+      why: '有嵌套循环或嵌套 lambda 时，用来指定 `break`、`continue`、`return` 作用于哪一层。最常见的是在 `forEach { }` 里跳过当前元素：`return@forEach`。',
+      example: 'val nums = listOf(1, 2, 3, 4)\n\n// 在 lambda 里跳过某个元素：return@forEach 只结束这一次 lambda\nnums.forEach {\n    if (it % 2 == 0) return@forEach\n    print(it)                          // 输出：13\n}\nprintln()\n\n// 嵌套循环：break@outer 直接跳出外层循环\nouter@ for (i in 1..3) {\n    for (j in 1..3) {\n        if (i * j == 4) break@outer\n        print("$i$j ")                 // 输出：11 12 13 21\n    }\n}',
+      vs: ['return 和 return@forEach 的区别', 'fun f() {\n    listOf(1, 2, 3).forEach {\n        if (it == 2) return          // 结束整个函数 f，后面的都不执行\n        println(it)\n    }\n    println("结束")                  // 不会执行\n}\n\nfun g() {\n    listOf(1, 2, 3).forEach {\n        if (it == 2) return@forEach  // 只跳过 2，相当于 continue\n        println(it)\n    }\n    println("结束")                  // 会执行\n}'],
+      ts: '[1, 2, 3, 4].forEach((it) => {\n  if (it % 2 === 0) return;   // TS 箭头函数里的 return 就只结束这一次回调\n  console.log(it);\n});\nouter: for (let i = 1; i <= 3; i++) {\n  for (let j = 1; j <= 3; j++) { if (i * j === 4) break outer; }\n}',
+      desc: '- 定义标签：`名字@` 写在循环或 lambda 前面\n- 使用：`break@名字`、`continue@名字`、`return@名字`\n- lambda 默认可以用接收它的函数名当标签，比如 `return@forEach`、`return@map`',
+      q: '(label) @hit', kw: '@\\w+|\\w+@', tags: ['@', 'label', 'return@', 'break', 'continue'],
+    },
+  ]);
+})(globalThis.LANGREF_CARDS || (globalThis.LANGREF_CARDS = []));

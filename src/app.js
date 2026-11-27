@@ -44,9 +44,12 @@
 
   // ---------- 渲染卡片 ----------
   function cardBody(card) {
-    const parts = [md(card.desc)];
-    parts.push(`<div class="label">示例</div><pre>${esc(card.example)}</pre>`);
+    const parts = [];
+    if (card.why) parts.push(`<div class="why">${md(card.why)}</div>`);
+    parts.push(`<div class="label">用法演示</div><pre>${esc(card.example)}</pre>`);
+    if (card.vs) parts.push(`<div class="label">对比：${esc(card.vs[0])}</div><pre>${esc(card.vs[1])}</pre>`);
     if (card.ts) parts.push(`<div class="label">TypeScript 对照</div><pre>${esc(card.ts)}</pre>`);
+    if (card.desc) parts.push(`<div class="label">要点</div>${md(card.desc)}`);
     if (card.cmp) parts.push(`<div class="label">${esc(card.cmp[0])} 对照</div><pre>${esc(card.cmp[1])}</pre>`);
     if (card.pit) parts.push(`<div class="label">注意</div><div class="pit">${md(card.pit)}</div>`);
     const see = (card.see || []).map((id) => engine.byId.get(id)).filter(Boolean);
@@ -245,5 +248,8 @@
   // #q=关键字：打开即搜索，可以收藏成书签
   const hq = location.hash.match(/^#q=(.+)/);
   if (hq) { ui.search.value = decodeURIComponent(hq[1]); render(); }
+  // #card=卡片id：直接打开某张卡片，可以用来分享链接
+  const hc = location.hash.match(/^#card=([\w-]+)/);
+  if (hc && engine.byId.has(hc[1])) { ui.search.value = engine.byId.get(hc[1]).title; selectedId = null; select(hc[1]); }
   window.__langref = { engine, analyze: () => result }; // 方便调试和自动化检查
 })();

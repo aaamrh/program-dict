@@ -2,6 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
+const { cardFiles } = require('./load.cjs');
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 const b64 = (p) => fs.readFileSync(path.join(ROOT, p)).toString('base64');
 
@@ -13,7 +14,7 @@ const scripts = [
   read('node_modules/web-tree-sitter/tree-sitter.js'),
   `window.LANGREF_WASM = ${JSON.stringify(wasm)};`,
   read('src/engine.js'),
-  ...LANGS.filter((l) => fs.existsSync(path.join(ROOT, `src/cards/${l}.js`))).map((l) => read(`src/cards/${l}.js`)),
+  ...LANGS.flatMap((l) => cardFiles(l)).map(read),
   read('src/cards/links.js'),
   read('src/app.js'),
 ];

@@ -7,14 +7,15 @@ const { load, ROOT } = require('./load.cjs');
   const want = process.argv.slice(2);
   const langs = want.length ? want : ['kotlin', 'java', 'rust'];
   const { engine, cards } = await load(langs);
-  const fails = [];
+  let fails = [];
 
   fails.push(...engine.problems);
   const seen = new Set();
   for (const c of cards) {
     if (seen.has(c.id)) fails.push(`${c.id}: 重复 id`);
     seen.add(c.id);
-    for (const f of ['id', 'lang', 'cat', 'title', 'syntax', 'desc', 'example', 'ts']) if (!c[f]) fails.push(`${c.id}: 缺少 ${f}`);
+    for (const f of ['id', 'lang', 'cat', 'title', 'syntax', 'why', 'example', 'vs', 'ts']) if (!c[f]) fails.push(`${c.id}: 缺少 ${f}`);
+    if (c.vs && !(Array.isArray(c.vs) && c.vs.length === 2)) fails.push(`${c.id}: vs 必须是 [标题, 代码]`);
     if (!c.q && !(c.api && c.api.length) && !c.kw) fails.push(`${c.id}: 没有任何识别规则`);
     if (c.q || (c.api && c.api.length)) {
       const r = engine.analyze(c.example, c.lang);
@@ -40,6 +41,14 @@ const { load, ROOT } = require('./load.cjs');
 
   const counts = langs.map((l) => `${l} ${cards.filter((c) => c.lang === l).length}`).join(', ');
   console.log(`卡片：${counts}；验收用例 ${cases.length} 个`);
+  // ONLY=kotlin/03.js,kotlin/04.js：只报告这些文件里卡片的问题（多人并行改卡片时用），验收用例的失败照常报告
+  if (process.env.ONLY) {
+    const files = new Set(process.env.ONLY.split(','));
+    const ids = new Set(cards.filter((c) => files.has(c._file)).map((c) => c.id));
+    const idOf = (line) => (line.match(/^([\w-]+): /) || [])[1];
+    fails = fails.filter((f) => !idOf(f) || ids.has(idOf(f)));
+    console.log(`只检查 ${[...files].join(', ')}（${ids.size} 张卡片）`);
+  }
   if (fails.length) { console.log(`失败 ${fails.length} 项：\n- ` + fails.join('\n- ')); process.exitCode = 1; }
   else console.log('全部通过');
 })();

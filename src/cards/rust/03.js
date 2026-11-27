@@ -1,0 +1,70 @@
+// rust · 函数与闭包（6 张）。字段说明见 README.md。
+(function (C) {
+  const add = (cat, list) => list.forEach((c) => C.push({ lang: 'rust', cat, ...c }));
+
+  add('函数与闭包', [
+    {
+      id: 'rs-fn', title: 'fn 函数', syntax: 'fn add(a: i32, b: i32) -> i32 { a + b }',
+      why: '把一段要反复用的逻辑起个名字，传参数进去、拿结果回来。Rust 程序从 `fn main()` 开始执行，其他函数都是从 main 一层层调用的。',
+      example: '// 1. 定义：参数必须写类型，返回类型写在 -> 后面\nfn add(a: i32, b: i32) -> i32 {\n    a + b                       // 最后一行不加分号，就是返回值\n}\n\n// 没有返回值的函数，不写 ->（等于返回 ()）\nfn greet(name: &str) {\n    println!("你好，{}", name);\n}\n\n// 2. 调用\nfn main() {\n    let sum = add(1, 2);\n    println!("{}", sum);         // 输出：3\n    greet("Tom");                // 输出：你好，Tom\n}',
+      vs: ['参数类型不能省略（和 TS 不同）', 'fn add(a: i32, b: i32) -> i32 { a + b }   // 正确\n\nfn add2(a, b) { a + b }       // 编译错误：expected one of `:`, `@`, or `|`\n                              // Rust 的函数参数必须写类型，不会根据调用推断\n\nfn main() {\n    add(1, 2.5);              // 编译错误：mismatched types: expected `i32`, found floating-point number\n}'],
+      ts: 'function add(a: number, b: number): number {\n  return a + b;\n}\nfunction greet(name: string) {\n  console.log(`你好，${name}`);\n}\nconsole.log(add(1, 2));   // 3\ngreet("Tom");             // 你好，Tom',
+      desc: '- 函数名用 snake_case，比如 `read_file`\n- 不写返回类型就是返回 `()`（相当于 TS 的 `void`）\n- 函数可以写在调用它的代码后面，不需要先声明\n- Rust 没有函数重载，也没有参数默认值',
+      cmp: ['Kotlin', 'fun add(a: Int, b: Int): Int = a + b'],
+      q: '(function_item name: (identifier) @hit)', tags: ['fn', '函数', '->'],
+    },
+    {
+      id: 'rs-tail-expr', title: '末尾表达式就是返回值（不加分号）', syntax: 'fn f() -> i32 { 1 + 2 }',
+      why: 'Rust 里大部分东西都是表达式，会产生一个值。函数体最后一行不加分号，它的值就直接作为返回值，不用写 `return`。只有中途提前返回时才写 `return`。',
+      example: 'fn double(x: i32) -> i32 {\n    x * 2                        // 不加分号：这就是返回值\n}\n\nfn grade(score: i32) -> &\'static str {\n    if score < 0 {\n        return "无效";           // 提前返回才写 return\n    }\n    if score >= 60 { "及格" } else { "不及格" }   // if 也是表达式，它的值就是返回值\n}\n\nfn main() {\n    println!("{}", double(21));  // 输出：42\n    println!("{}", grade(75));   // 输出：及格\n    println!("{}", grade(-1));   // 输出：无效\n}',
+      vs: ['多一个分号就出错', 'fn double(x: i32) -> i32 {\n    x * 2          // 正确：返回 x * 2\n}\n\nfn double_bad(x: i32) -> i32 {\n    x * 2;         // 编译错误：mismatched types: expected `i32`, found `()`\n}                  // 加了分号就变成语句，函数体的值变成了 ()\n                   // 编译器会提示：remove this semicolon to return this value'],
+      ts: 'function double(x: number): number {\n  return x * 2;              // TS 必须写 return\n}\nconst double2 = (x: number) => x * 2;   // 箭头函数单表达式写法最接近\nfunction grade(score: number): string {\n  if (score < 0) return "无效";\n  return score >= 60 ? "及格" : "不及格";\n}',
+      desc: '- 任何 `{ }` 代码块都适用：最后一个不带分号的表达式就是这个块的值，比如 `let x = { let a = 1; a + 1 };` 得到 2\n- `if`、`match`、`loop` 都能这样产生值\n- 写成 `return x * 2;` 也可以，只是习惯上不写',
+      cmp: ['Kotlin', 'fun double(x: Int) = x * 2'],
+      pit: '报 `mismatched types: expected i32, found ()` 时，先看是不是最后一行多写了分号。',
+      q: '(function_item body: (block [(identifier) (call_expression) (binary_expression) (struct_expression) (field_expression) (macro_invocation) (if_expression) (match_expression) (integer_literal) (string_literal) (reference_expression) (try_expression) (tuple_expression) (unary_expression)] @hit .))',
+      tags: ['返回值', 'return', '分号', '表达式'],
+    },
+    {
+      id: 'rs-closure', title: '|x| 闭包', syntax: '|a, b| a + b    |x: i32| -> i32 { x * 2 }',
+      why: '写一个就地使用的小函数，最常见的是传给 `map`、`filter`、`sort_by` 这类方法，告诉它们"对每个元素做什么"。闭包还能直接使用外面的变量，普通 `fn` 不行。',
+      example: 'fn main() {\n    // 1. 定义：参数写在两条竖线之间，类型一般能推断\n    let add = |a, b| a + b;\n    println!("{}", add(1, 2));               // 输出：3\n\n    // 2. 捕获外部变量\n    let rate = 10;\n    let with_tax = |price: i32| price + price * rate / 100;\n    println!("{}", with_tax(200));           // 输出：220\n\n    // 3. 最常见的用法：传给迭代器方法\n    let nums = vec![1, 2, 3, 4];\n    let evens: Vec<i32> = nums.iter().filter(|n| *n % 2 == 0).cloned().collect();\n    println!("{:?}", evens);                 // 输出：[2, 4]\n}',
+      vs: ['闭包 vs 普通 fn：fn 不能用外面的变量', 'fn main() {\n    let rate = 10;\n\n    let c = |p: i32| p * rate;          // 闭包：可以直接用 rate\n\n    fn f(p: i32) -> i32 {\n        p * rate                        // 编译错误：can\'t capture dynamic environment in a fn item\n    }                                   // 编译器提示：use the `|| { ... }` closure form instead\n}'],
+      ts: 'const add = (a: number, b: number) => a + b;\nconsole.log(add(1, 2));                 // 3\nconst rate = 10;\nconst withTax = (price: number) => price + price * rate / 100;\nconst evens = [1, 2, 3, 4].filter((n) => n % 2 === 0);   // [2, 4]',
+      desc: '- 函数参数要接收闭包时，类型写 `impl Fn(i32) -> i32`，或者泛型 `F: Fn(i32) -> i32`\n- `Fn`：只读用外部变量；`FnMut`：会修改外部变量；`FnOnce`：会拿走外部变量的所有权，只能调用一次\n- 闭包体有多行时用大括号：`|x| { let y = x * 2; y + 1 }`',
+      cmp: ['Kotlin', 'val add = { a: Int, b: Int -> a + b }'],
+      q: '(closure_expression) @hit', tags: ['闭包', 'closure', 'lambda', '||', 'Fn', 'FnMut', 'FnOnce'],
+    },
+    {
+      id: 'rs-move-closure', title: 'move 闭包', syntax: 'thread::spawn(move || { ... })',
+      why: '闭包默认是"借用"外部变量。但如果闭包要拿到另一个线程里运行，或者要在当前函数返回后继续存在，借来的变量可能已经被释放了。`move` 让闭包把用到的变量的所有权直接拿走，自己保管。',
+      example: 'use std::thread;\n\nfn main() {\n    let name = String::from("Tom");\n\n    // move：name 的所有权移进闭包，闭包被送到新线程里执行\n    let handle = thread::spawn(move || {\n        println!("你好，{}", name);\n    });\n\n    handle.join().unwrap();      // 等线程结束。输出：你好，Tom\n    // println!("{}", name);     // 编译错误：borrow of moved value: `name`（已经给了线程）\n}',
+      vs: ['不写 move 会怎样', 'use std::thread;\n\nfn main() {\n    let name = String::from("Tom");\n    let handle = thread::spawn(|| {     // 没写 move，闭包只是借用 name\n        println!("{}", name);\n    });\n    // 编译错误：closure may outlive the current function, but it borrows `name`\n    // 编译器的理由：新线程可能比 main 活得更久，借来的 name 那时可能已经没了\n    // 编译器提示：to force the closure to take ownership of `name`, use the `move` keyword\n    handle.join().unwrap();\n}'],
+      ts: '// TS 没有对应写法：JS 闭包总是按引用捕获变量，由 GC 保证变量活着，不需要 move。\nconst name = "Tom";\nsetTimeout(() => console.log(`你好，${name}`));   // 你好，Tom\nconsole.log(name);   // 闭包用了之后外面照样能用\n// 真要在另一个线程（worker_threads）里用，只能通过 postMessage 复制一份数据过去',
+      desc: '- 用到的 `String`、`Vec` 等会被移动进闭包；`i32` 这类 `Copy` 类型会被复制，外面仍能用\n- 想让外面也继续用，先 `clone()` 一份再 move：`let n2 = name.clone(); thread::spawn(move || ... n2 ...)`\n- 返回闭包的函数（`fn make() -> impl Fn()`）通常也需要 move',
+      cmp: ['Java', 'final String name = "Tom";\nnew Thread(() -> System.out.println(name)).start();  // Java 只要求变量是 effectively final'],
+      q: '(closure_expression "move" @hit)', tags: ['move', '闭包', '线程'],
+    },
+    {
+      id: 'rs-async', title: 'async / .await', syntax: 'async fn load() -> T    let v = load().await;',
+      why: '网络请求、读文件这类要等待的操作，等的时候不应该占着线程空转。`async` 函数可以在等待时把线程让给别的任务，等结果回来再接着执行，写起来却和普通的顺序代码一样。',
+      example: 'use std::time::Duration;\n\n// 1. async fn：调用它不会立刻执行，而是得到一个 Future\nasync fn fetch_user(id: u32) -> String {\n    tokio::time::sleep(Duration::from_millis(100)).await;   // 等待时不占线程\n    format!("user-{}", id)\n}\n\n// 2. 需要运行时（这里用 tokio）来驱动\n#[tokio::main]\nasync fn main() {\n    let name = fetch_user(7).await;   // .await 才真正执行并等待结果\n    println!("{}", name);             // 输出：user-7\n\n    let (a, b) = tokio::join!(fetch_user(1), fetch_user(2));   // 两个同时进行\n    println!("{} {}", a, b);          // 输出：user-1 user-2（总共约 100ms）\n}',
+      vs: ['忘了 .await：函数根本不会执行', 'async fn save() {\n    println!("保存了");\n}\n\n#[tokio::main]\nasync fn main() {\n    save();          // 什么也不输出！只是创建了一个 Future，然后被丢掉了\n                     // 编译器警告：unused implementer of `Future` that must be used\n    save().await;    // 输出：保存了\n}'],
+      ts: 'async function fetchUser(id: number): Promise<string> {\n  await new Promise((r) => setTimeout(r, 100));\n  return `user-${id}`;\n}\nconst name = await fetchUser(7);    // Rust 写 fetch_user(7).await，TS 写 await fetchUser(7)\nconst [a, b] = await Promise.all([fetchUser(1), fetchUser(2)]);   // ≈ tokio::join!\n// 差异：TS 的 Promise 一创建就开始执行；Rust 的 Future 不 await 就不执行',
+      desc: '- `.await` 是后缀写法，可以接着链式调用：`client.get(url).send().await?.text().await?`\n- 只能在 `async fn` 或 `async { }` 块里使用 `.await`\n- 标准库只提供 `Future` 和语法，不带运行时；常用 tokio，入口函数写 `#[tokio::main]`',
+      cmp: ['Kotlin', 'suspend fun fetchUser(id: Int): String {\n    delay(100)\n    return "user-$id"\n}'],
+      pit: '在 async 函数里调用 `std::thread::sleep` 或同步读文件会卡住整个运行时线程，应该用 `tokio::time::sleep`、`tokio::fs` 这类异步版本。',
+      q: '[(function_modifiers "async" @hit) (async_block "async" @hit) (await_expression "await" @hit)]', kw: '\\.await\\b|\\basync\\b', tags: ['async', 'await', 'Future', '异步', 'suspend', 'tokio'],
+    },
+    {
+      id: 'rs-unsafe', title: 'unsafe 块 / unsafe fn', syntax: 'unsafe { ... }',
+      why: '有些操作编译器没法检查是否安全，比如调用 C 语言库、解引用裸指针、修改全局可变变量。Rust 默认不让做，必须包在 `unsafe { }` 里，表示"这里的安全由我负责"。日常业务代码基本用不到。',
+      example: 'static mut COUNTER: u32 = 0;      // 全局可变变量，多线程同时改会出问题\n\nfn bump() {\n    unsafe {\n        COUNTER += 1;               // 修改 static mut 必须在 unsafe 里\n    }\n}\n\nfn main() {\n    bump();\n    bump();\n    let n = unsafe { COUNTER };     // 读也要 unsafe\n    println!("{}", n);              // 输出：2\n\n    let x = 5;\n    let p = &x as *const i32;       // 创建裸指针是安全的\n    println!("{}", unsafe { *p });  // 解引用裸指针要 unsafe。输出：5\n}',
+      vs: ['不写 unsafe 直接改全局变量', 'static mut COUNTER: u32 = 0;\n\nfn main() {\n    COUNTER += 1;   // 编译错误：use of mutable static is unsafe and requires unsafe function or block\n}\n\n// 更推荐的写法：用原子类型，不需要 unsafe\nuse std::sync::atomic::{AtomicU32, Ordering};\nstatic COUNT: AtomicU32 = AtomicU32::new(0);\nfn bump() { COUNT.fetch_add(1, Ordering::Relaxed); }'],
+      ts: '// TS 没有对应写法：TS 没有裸指针，也没有"不安全代码块"，全局变量随时能改。\nlet COUNTER = 0;\nfunction bump() { COUNTER += 1; }\nbump(); bump();\nconsole.log(COUNTER);   // 2\n// 最接近的是用 any 或 as 绕过类型检查，后果同样自己负责',
+      desc: '- `unsafe` 只放开五件事：解引用裸指针、调用 `unsafe fn`（包括 C 函数）、读写 `static mut`、实现 `unsafe trait`、访问 union 字段\n- 借用检查等其他规则在 unsafe 里照样生效\n- `unsafe fn` 表示调用方必须满足某些条件，调用它也要放进 `unsafe { }`',
+      pit: '全局计数器之类的需求，优先用 `AtomicU32`、`Mutex`、`OnceLock`，不要用 `static mut`。新版 Rust（2024 edition）连对 `static mut` 取引用都会报错。',
+      q: '[(unsafe_block "unsafe" @hit) (function_modifiers "unsafe" @hit)]', tags: ['unsafe', 'FFI', '裸指针', 'static mut'],
+    },
+  ]);
+})(globalThis.LANGREF_CARDS || (globalThis.LANGREF_CARDS = []));

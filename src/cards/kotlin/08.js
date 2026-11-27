@@ -36,7 +36,7 @@
       id: 'kt-reified', title: 'inline + reified 具体化类型参数', syntax: 'inline fun <reified T> f()',
       why: '普通泛型在运行时会被擦除，函数里不知道 T 到底是什么，所以不能写 `x is T`、`T::class`。`inline` 加 `reified` 让编译器在调用处把 T 换成真实类型，就能按类型过滤、按类型取对象，调用时也不用额外传 Class 参数。',
       example: '// 1. 按类型过滤：调用处的 T 会被替换成真实类型\ninline fun <reified T> List<Any>.only(): List<T> = filter { it is T }.map { it as T }\n\nval mixed = listOf(1, "a", 2, "b")\nprintln(mixed.only<String>())   // 输出：[a, b]\nprintln(mixed.only<Int>())      // 输出：[1, 2]\n\n// 2. 拿到类名\ninline fun <reified T> typeName() = T::class.simpleName\nprintln(typeName<String>())     // 输出：String',
-      vs: ['不加 reified 会怎样', 'fun <T> isA(x: Any) = x is T\n// 编译错误：Cannot check for instance of erased type: T\n\n// 不用 reified，只能显式传 Class：\nfun <T : Any> isA(x: Any, cls: KClass<T>) = cls.isInstance(x)\nisA("a", String::class)   // 每次调用都要多传一个参数'],
+      vs: ['不加 reified 会怎样', 'import kotlin.reflect.KClass\n\n// fun <T> isA(x: Any) = x is T   // 编译错误：Cannot check for instance of erased type \'T\'\n\n// 不用 reified，只能显式传 Class：\nfun <T : Any> isA(x: Any, cls: KClass<T>) = cls.isInstance(x)\nprintln(isA("a", String::class))   // 输出：true（每次调用都要多传一个参数）'],
       ts: '// TS 没有对应写法：类型在运行时全部擦除，拿不到 T。只能显式传入类：\nfunction only<T>(xs: unknown[], cls: new (...a: any[]) => T): T[] {\n  return xs.filter((x): x is T => x instanceof cls);\n}\nonly([new Date(), "a"], Date);   // [Date]',
       desc: '- 只能用在 `inline` 函数上\n- 标准库的 `filterIsInstance<T>()` 就是这样实现的',
       q: '(reification_modifier) @hit', tags: ['reified', '类型擦除', 'inline'],

@@ -17,7 +17,7 @@
       id: 'rs-use', title: 'use 导入', syntax: 'use std::collections::{HashMap, HashSet};',
       why: '别的模块里的东西，完整路径往往很长（`std::collections::HashMap`）。`use` 把路径引进来，之后直接写短名字。',
       example: 'use std::collections::HashMap;     // 引入后直接写 HashMap\nuse std::fmt::{self, Display};     // 一次引入多个；self 表示 fmt 模块本身\nuse std::io::Result as IoResult;   // as 起别名，避免和 Result 重名\n\nfn main() {\n    let mut m = HashMap::new();\n    m.insert("a", 1);\n    println!("{:?}", m);   // 输出：{"a": 1}\n\n    // 不 use 也行，但要写完整路径\n    let s: std::collections::HashSet<i32> = [1, 2, 2].into_iter().collect();\n    println!("{}", s.len());   // 输出：2\n}',
-      vs: ['不 use：每次都写完整路径', 'let m: std::collections::HashMap<&str, i32> = std::collections::HashMap::new();\n\n// 忘了 use 就直接写短名：\nlet m = HashMap::new();\n// 编译错误：failed to resolve: use of undeclared type `HashMap`'],
+      vs: ['不 use：每次都写完整路径', 'let m: std::collections::HashMap<&str, i32> = std::collections::HashMap::new();\n\n// 忘了 use 就直接写短名：\nlet m = HashMap::new();\n// 编译错误：cannot find type `HashMap` in this scope（标注：use of undeclared type `HashMap`）'],
       ts: '// Rust 的 use 对应 import（下面的路径只是示意）\nimport { HashMap } from "std/collections";\nimport * as fmt from "std/fmt";\nimport { Result as IoResult } from "std/io";\n// 差异：TS 的 import 会加载文件；Rust 的 use 只是起个短名，模块编不编译由 mod 决定',
       desc: '- `{a, b}` 一次导入多个，`as` 起别名，`*` 导入全部（一般只在测试里用 `use super::*;`）\n- 常用类型如 `Vec`、`String`、`Option` 在预导入（prelude）里，不用 use',
       cmp: ['Java', 'import java.util.HashMap;'],

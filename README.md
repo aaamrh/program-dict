@@ -32,6 +32,7 @@ npm run build      # 自检通过后生成 dist/index.html
 - `tests/cases-<语言>.cjs`：验收用例（真实代码片段，包括不完整的片段）
 - `scripts/probe.cjs`：打印一段代码的语法树，写新规则前用：`node scripts/probe.cjs kotlin a.kt`（设环境变量 `ALL=1` 显示 `?.` 这类符号节点）
 - `scripts/test.cjs`、`scripts/build.cjs`：自检、打包
+- `scripts/verify-<语言>.cjs`：用真实编译器核对卡片代码：能否编译、`// 输出：` 是否和实际运行一致、标了"编译错误"的行是否真的报错。需要本机装有 rustc / JDK 17；Kotlin 用 Gradle 缓存里的编译器。不在 CI 里运行，改了卡片代码后手动跑：`node --max-old-space-size=512 scripts/verify-kotlin.cjs`
 - `.github/workflows/pages.yml`：推送到 main 后自动自检、打包并发布到 GitHub Pages；自检不通过就不发布
 
 ## 卡片字段

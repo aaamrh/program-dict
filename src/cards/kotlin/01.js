@@ -38,7 +38,7 @@
       id: 'kt-string-template', title: '字符串模板 $x / ${expr}', syntax: '"Hi $name, ${a + b}"',
       why: '把变量或表达式的值直接嵌进字符串，不用一段段用 `+` 拼接，更好读也不容易漏空格。',
       example: 'val name = "Tom"\nval age = 18\nval items = listOf("a", "b")\n\nprintln("user=$name")                // 输出：user=Tom\nprintln("明年 ${age + 1} 岁")         // 输出：明年 19 岁\nprintln("共 ${items.size} 项")        // 输出：共 2 项（访问属性也要用 {}）\nprintln("价格 \\$9")                  // 输出：价格 $9（\\$ 输出美元符号）',
-      vs: ['$name 和 ${...} 什么时候用哪个', 'val user = User("Tom")\nprintln("$user.name")       // 输出：User(name=Tom).name —— 只插入了 user（假设是 data class），.name 被当成普通文字\nprintln("${user.name}")     // 输出：Tom —— 表达式要用 {} 包起来'],
+      vs: ['$name 和 ${...} 什么时候用哪个', 'data class User(val name: String)\nval user = User("Tom")\nprintln("$user.name")       // 输出：User(name=Tom).name —— 只插入了 user，.name 被当成普通文字\nprintln("${user.name}")     // 输出：Tom —— 表达式要用 {} 包起来'],
       ts: 'const name = "Tom";\nconst age = 18;\nconsole.log(`user=${name}`);         // TS 用反引号；Kotlin 用普通双引号\nconsole.log(`明年 ${age + 1} 岁`);\n// Kotlin 里单个变量可以省略 {}：$name',
       desc: '- 只有一个变量名时可以写 `$name`；带 `.`、运算或函数调用时必须写 `${...}`\n- 三引号字符串 `"""..."""` 里模板同样有效',
       cmp: ['Java', 'String msg = "user=" + name + " age=" + (age + 1);'],

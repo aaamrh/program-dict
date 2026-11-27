@@ -75,8 +75,8 @@
     {
       id: 'kt-use', title: '.use { } 自动关闭资源', syntax: 'stream.use { it.read() }',
       why: '文件、网络连接、数据库游标这类资源用完必须关闭，否则会泄漏。`.use { }` 保证代码块执行完一定调用 `close()`，中途抛异常也会关。',
-      example: '// 读文件：use 结束后 reader 自动关闭\nval text = File("a.txt").bufferedReader().use { reader ->\n    reader.readText()   // 代码块的结果就是 use 的返回值\n}\nprintln(text)           // 输出：文件内容\n\n// 中途抛异常也会关闭\nclass Res : Closeable {\n    override fun close() = println("已关闭")\n}\nrunCatching { Res().use { error("出错了") } }   // 输出：已关闭（异常随后被 runCatching 接住）',
-      vs: ['不用 use：手写 try/finally', 'val reader = File("a.txt").bufferedReader()\ntry {\n    println(reader.readText())\n} finally {\n    reader.close()   // 忘了写 finally 的话，出异常时文件就一直开着\n}'],
+      example: 'File("a.txt").writeText("文件内容")   // 先准备一个文件\n\n// 读文件：use 结束后 reader 自动关闭\nval text = File("a.txt").bufferedReader().use { reader ->\n    reader.readText()   // 代码块的结果就是 use 的返回值\n}\nprintln(text)           // 输出：文件内容\n\n// 中途抛异常也会关闭\nclass Res : Closeable {\n    override fun close() = println("已关闭")\n}\nrunCatching { Res().use { error("出错了") } }   // 输出：已关闭（异常随后被 runCatching 接住）',
+      vs: ['不用 use：手写 try/finally', 'File("a.txt").writeText("文件内容")\n\nval reader = File("a.txt").bufferedReader()\ntry {\n    println(reader.readText())   // 输出：文件内容\n} finally {\n    reader.close()   // 忘了写 finally 的话，出异常时文件就一直开着\n}'],
       ts: 'const fh = await fs.open("a.txt");\ntry {\n  console.log(await fh.readFile("utf8"));\n} finally {\n  await fh.close();   // use { } ≈ try/finally；TS 5.2+ 可以写 await using fh = ...\n}',
       desc: '- 适用于实现了 `Closeable` / `AutoCloseable` 的对象\n- 返回值是代码块最后一个表达式的值',
       cmp: ['Java', 'try (BufferedReader r = ...) { r.read(); }'],

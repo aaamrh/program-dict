@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LangRef · Kotlin / Java / Rust 语法速查</title>
+<!--STYLE-->
+</head>
+<body>
+<header>
+  <h1>LangRef</h1>
+  <input id="search" type="search" autocomplete="off" placeholder="搜索语法：?.  by lazy  impl  extends …（按 / 聚焦，Esc 清空）">
+  <select id="lang" title="代码语言">
+    <option value="auto">自动识别</option>
+    <option value="kotlin">Kotlin</option>
+    <option value="java">Java</option>
+    <option value="rust">Rust</option>
+  </select>
+</header>
+<main>
+  <section id="left">
+    <div class="bar">
+      <span id="status">加载语法解析器…</span>
+      <span class="spacer"></span>
+      <button id="demo">示例</button>
+      <button id="edit" hidden>编辑代码</button>
+      <button id="clear">清空</button>
+    </div>
+    <textarea id="code" spellcheck="false" placeholder="把代码粘到这里，右边会列出用到的语法。&#10;不需要完整的类或函数，几行也可以。&#10;&#10;识别后点击代码中的任意位置，可以查看那里的语法。"></textarea>
+    <div id="view" hidden><div id="gutter"></div><pre id="src"></pre></div>
+  </section>
+  <section id="right"><div id="results"></div></section>
+</main>
+<!--SCRIPTS-->
+</body>
+</html>

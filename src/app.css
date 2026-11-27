@@ -1,0 +1,60 @@
+:root {
+  --bg: #fafafa; --panel: #fff; --fg: #1f2328; --muted: #656d76; --line: #d8dee4;
+  --accent: #0969da; --mark: #fff3a3; --mark-strong: #ffd33d; --code-bg: #f3f4f6; --warn: #9a6700;
+  --kotlin: #7f52ff; --java: #b07219; --rust: #b7410e;
+  --mono: "JetBrains Mono", "Maple Mono NF CN", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1117; --panel: #161b22; --fg: #e6edf3; --muted: #8d96a0; --line: #30363d;
+    --accent: #4493f8; --mark: #4d4200; --mark-strong: #806c00; --code-bg: #1f242c; --warn: #d29922;
+  }
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--fg); font: 14px/1.6 system-ui, "Microsoft YaHei", sans-serif; display: flex; flex-direction: column; }
+header { display: flex; gap: 12px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--panel); }
+header h1 { font-size: 16px; margin: 0; }
+#search { flex: 1; padding: 6px 10px; font-size: 14px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+select, button { padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--fg); cursor: pointer; font-size: 13px; }
+button:hover { border-color: var(--accent); }
+main { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: 0; }
+#left { display: flex; flex-direction: column; border-right: 1px solid var(--line); min-height: 0; }
+.bar { display: flex; gap: 8px; align-items: center; padding: 6px 12px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+.spacer { flex: 1; }
+#code, #view { flex: 1; min-height: 0; margin: 0; border: 0; font: 13px/1.55 var(--mono); background: var(--panel); color: var(--fg); }
+#code { padding: 10px 12px; resize: none; outline: none; tab-size: 4; }
+#view { display: flex; overflow: auto; }
+#view[hidden], #edit[hidden] { display: none; }
+#gutter { padding: 10px 8px 10px 12px; text-align: right; color: var(--muted); user-select: none; white-space: pre; border-right: 1px solid var(--line); }
+#src { margin: 0; padding: 10px 12px; flex: 1; white-space: pre; tab-size: 4; cursor: text; font: inherit; }
+#src mark { background: var(--mark); color: inherit; border-radius: 2px; }
+#src mark.strong { background: var(--mark-strong); }
+#right { overflow: auto; padding: 12px 16px 40px; min-height: 0; }
+.group-title { font-size: 12px; color: var(--muted); margin: 18px 0 6px; text-transform: uppercase; letter-spacing: .04em; }
+.group-title:first-child { margin-top: 0; }
+.item { border: 1px solid var(--line); border-radius: 8px; background: var(--panel); margin-bottom: 6px; }
+.item > .head { display: flex; gap: 8px; align-items: baseline; padding: 6px 10px; cursor: pointer; }
+.item > .head:hover { background: var(--code-bg); }
+.item.open { border-color: var(--accent); }
+.item .ln { color: var(--muted); font: 12px var(--mono); min-width: 34px; }
+.item .title { font-weight: 600; }
+.item .syntax { color: var(--muted); font: 12px var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; text-align: right; }
+.badge { font-size: 11px; padding: 0 6px; border-radius: 10px; border: 1px solid currentColor; white-space: nowrap; }
+.badge.maybe { color: var(--warn); }
+.badge.kotlin { color: var(--kotlin); } .badge.java { color: var(--java); } .badge.rust { color: var(--rust); }
+.card { padding: 2px 12px 10px; border-top: 1px solid var(--line); }
+.card p { margin: 8px 0; }
+.card ul { margin: 6px 0; padding-left: 20px; }
+.card code { font: 12.5px var(--mono); background: var(--code-bg); padding: 1px 4px; border-radius: 4px; }
+.card pre { font: 12.5px/1.5 var(--mono); background: var(--code-bg); padding: 8px 10px; border-radius: 6px; overflow: auto; margin: 6px 0; }
+.card .label { font-size: 12px; color: var(--muted); margin-top: 10px; }
+.card .pit { color: var(--warn); }
+.card .label + pre { margin-top: 2px; }
+.card .tags { color: var(--muted); font-size: 12px; margin-top: 8px; }
+.card a { color: var(--accent); cursor: pointer; }
+.unknown { margin-top: 18px; padding: 10px 12px; border: 1px dashed var(--line); border-radius: 8px; }
+.unknown .names { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 8px; }
+.unknown .name { font: 12px var(--mono); padding: 1px 6px; border-radius: 4px; background: var(--code-bg); cursor: pointer; }
+.hint { color: var(--muted); }
+.empty { color: var(--muted); padding: 20px 0; }

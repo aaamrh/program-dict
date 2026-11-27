@@ -1,0 +1,15 @@
+{
+  "name": "lang-ref",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Kotlin / Java / Rust 语法速查：粘贴代码自动识别语法点",
+  "type": "commonjs",
+  "scripts": {
+    "test": "node scripts/test.cjs",
+    "build": "node scripts/test.cjs && node scripts/build.cjs"
+  },
+  "devDependencies": {
+    "tree-sitter-wasms": "0.1.13",
+    "web-tree-sitter": "0.22.6"
+  }
+}
